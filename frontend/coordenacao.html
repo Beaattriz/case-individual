@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <title>Painel Folia · Coordenação</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Folia · Coordenação</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
@@ -18,7 +18,9 @@
     <main id="tela-coordenacao" class="conteudo">
         <h2>Painel da coordenação</h2>
 
-        <!-- 1. Onde está o trio + botão Atualizar + aviso de dado antigo -->
+        <p id="aviso-conexao" class="mensagem mensagem--erro" role="alert" hidden></p>
+
+        <!-- 1. Onde está o trio + botão Atualizar + horário da última atualização -->
         <section class="controles">
             <form id="form-trecho" class="form-trecho" novalidate>
                 <label for="campo-trecho">O trio está no trecho</label>
@@ -41,12 +43,12 @@
             <p id="recomendado-detalhe" class="recomendado__detalhe"></p>
         </section>
 
-        <!-- 3. Lista de postos (montada pelo script.js com createElement) -->
+        <!-- 3. Lista de postos (montada pelo script.js) -->
         <section>
             <div class="lista-cabecalho">
                 <h3>Postos por distância do trio</h3>
                 <ul class="legenda">
-                    <li><span class="bolinha bolinha--verde"></span>aberto</li>
+                    <li><span class="bolinha bolinha--verde"></span>tranquilo</li>
                     <li><span class="bolinha bolinha--amarelo"></span>enchendo</li>
                     <li><span class="bolinha bolinha--vermelho"></span>lotado</li>
                     <li><span class="bolinha bolinha--cinza"></span>fechado</li>
@@ -62,8 +64,8 @@
                 <label for="campo-nome">Nome do posto</label>
                 <input id="campo-nome" name="nome" type="text" minlength="3" maxlength="60" required placeholder="Ex.: Posto Rua Marquês de Leão">
 
-                <label for="campo-posicao">Posição no circuito (metros desde o início)</label>
-                <input id="campo-posicao" name="posicao_m" type="number" min="0" step="1" required placeholder="Ex.: 1800">
+                <label for="campo-trecho-novo">Trecho do circuito</label>
+                <input id="campo-trecho-novo" name="trecho" type="number" min="1" max="10" step="1" required placeholder="Ex.: 4">
 
                 <button type="submit" class="btn">Cadastrar</button>
                 <p id="msg-cadastro" class="mensagem" hidden></p>

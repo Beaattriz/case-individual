@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Folia · Voluntário</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<!-- a classe "tela-voluntario" é o que faz o script.js saber que está nesta página -->
+<body class="tela-voluntario">
+    <nav class="menu">
+        <a href="index.html" class="btn-link">Início</a>
+        <a href="coordenacao.html" class="btn-link">Coordenação</a>
+    </nav>
+
+    <main id="tela-voluntario" class="secao-etapa">
+        <h2>Administre seu posto</h2>
+
+        <p id="aviso-conexao" class="mensagem mensagem--erro" role="alert" hidden></p>
+
+        <!-- 1. Escolha do posto (opções vêm do backend: GET /api/postos) -->
+        <div class="cartao">
+            <label for="select-posto">Escolha seu posto:</label>
+            <select id="select-posto" name="posto" required>
+                <option value="">Carregando postos…</option>
+            </select>
+        </div>
+
+        <!-- 2. Tudo abaixo só aparece depois de escolher o posto -->
+        <div id="area-posto" hidden>
+            <div class="cartao painel-fila">
+                <span id="vol-status" class="selo">—</span>
+                <p class="painel-fila__numero" aria-live="polite">
+                    <span id="vol-fila">0</span>
+                    <small>pessoa(s) na fila</small>
+                </p>
+                <p class="dica">Última atualização às <span id="vol-atualizado">—</span></p>
+            </div>
+
+            <div class="cartao botoes">
+                <p class="rotulo">Controle da fila</p>
+                <button type="button" class="btn-fila" data-variacao="1">+1 pessoa na fila</button>
+                <button type="button" class="btn-fila" data-variacao="-1">−1 pessoa na fila</button>
+            </div>
+
+            <div class="cartao status">
+                <p class="rotulo">Status do posto</p>
+                <button type="button" class="btn-status" data-status="aberto">ABERTO</button>
+                <button type="button" class="btn-status" data-status="lotado">LOTADO</button>
+                <button type="button" class="btn-status" data-status="fechado">FECHADO</button>
+            </div>
+
+            <p id="vol-mensagem" class="mensagem" role="status" hidden></p>
+        </div>
+    </main>
+
+    <footer class="rodape">O painel não registra dados pessoais nem clínicos: só a contagem da fila e o status de cada posto.</footer>
+</body>
+</html>

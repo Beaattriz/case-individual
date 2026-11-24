@@ -3,7 +3,7 @@
    ---------------------------------------------------------
    Um único arquivo para as três páginas:
      index.html         -> .inicio
-     voluntários.html   -> .secao-etapa
+     voluntario.html    -> .secao-etapa
      coordenacao.html   -> .conteudo (body.tela-coordenacao)
 
    Pensado para celular primeiro (voluntário usa no circuito,
@@ -191,14 +191,14 @@ button:disabled,
   background: var(--amarelo-festa);
 }
 
-/* ---------- 6. Página do voluntário (voluntários.html) ---------- */
+/* ---------- 6. Página do voluntário (voluntario.html) ---------- */
 .secao-etapa {
   max-width: var(--largura-max);
   margin: 1.5rem auto;
   padding: 0 1rem;
 }
 
-.secao-etapa > div {
+.cartao {
   background: var(--cartao);
   border-radius: var(--raio);
   box-shadow: var(--sombra);
@@ -206,62 +206,98 @@ button:disabled,
   margin-bottom: 1rem;
 }
 
-.secao-etapa label {
+.secao-etapa label,
+.rotulo {
   display: block;
   font-weight: 700;
-  margin-bottom: 0.6rem;
+  margin: 0 0 0.6rem;
   color: var(--texto-suave);
 }
 
+/* Número grande da fila */
+.painel-fila {
+  text-align: center;
+}
+
+.painel-fila__numero {
+  margin: 0.4rem 0;
+  line-height: 1;
+}
+
+.painel-fila__numero span {
+  display: block;
+  font-size: 4.5rem;
+  font-weight: 800;
+  color: var(--roxo-escuro);
+}
+
+.painel-fila__numero small {
+  font-size: 1rem;
+  color: var(--texto-suave);
+}
+
+.painel-fila .dica {
+  margin: 0.6rem 0 0;
+}
+
 /* Botões +1 / −1 lado a lado, bem grandes */
-.secao-etapa .botoes {
+.botoes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
 
-.secao-etapa .botoes label {
+.botoes .rotulo {
   grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 
-.secao-etapa .botoes button {
-  min-height: 72px;
-  font-size: 1.3rem;
+.btn-fila {
+  min-height: 84px;
+  font-size: 1.25rem;
+  line-height: 1.2;
 }
 
-.secao-etapa .botoes button:nth-of-type(1) { background: var(--verde); }
-.secao-etapa .botoes button:nth-of-type(2) { background: var(--vermelho); }
+.btn-fila[data-variacao="1"]  { background: var(--verde); }
+.btn-fila[data-variacao="-1"] { background: var(--vermelho); }
+.btn-fila[data-variacao="1"]:hover  { background: #17804a; }
+.btn-fila[data-variacao="-1"]:hover { background: #b83838; }
 
-/* Status: ABERTO / FECHADO / LOTADO (nesta ordem no HTML) */
-.secao-etapa .status {
+/* Status: aberto / lotado / fechado */
+.status {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
-.secao-etapa .status label {
+.status .rotulo {
   grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 
-.secao-etapa .status button {
+.btn-status {
+  --cor: var(--cinza);
+  min-height: 56px;
   padding: 0.7rem 0.3rem;
   font-size: 0.95rem;
+  color: var(--cor);
   background: var(--cartao);
-  border: 2px solid currentColor;
+  border: 2px solid var(--cor);
 }
 
-.secao-etapa .status button:nth-of-type(1) { color: var(--verde); }
-.secao-etapa .status button:nth-of-type(2) { color: var(--cinza); }
-.secao-etapa .status button:nth-of-type(3) { color: var(--vermelho); }
+.btn-status[data-status="aberto"]  { --cor: var(--verde); }
+.btn-status[data-status="lotado"]  { --cor: var(--vermelho); }
+.btn-status[data-status="fechado"] { --cor: var(--cinza); }
 
-.secao-etapa .status button:hover,
-.secao-etapa .status button.selecionado {
+.btn-status:hover,
+.btn-status.selecionado {
   color: #fff;
+  background: var(--cor);
 }
 
-.secao-etapa .status button:nth-of-type(1):is(:hover, .selecionado) { background: var(--verde); border-color: var(--verde); }
-.secao-etapa .status button:nth-of-type(2):is(:hover, .selecionado) { background: var(--cinza); border-color: var(--cinza); }
-.secao-etapa .status button:nth-of-type(3):is(:hover, .selecionado) { background: var(--vermelho); border-color: var(--vermelho); }
+.btn-status.selecionado::before {
+  content: "✓";
+}
 
 /* ---------- 7. Campos de formulário ---------- */
 input,
@@ -629,7 +665,7 @@ section.recomendado.sem-opcao {
     flex: 1;
   }
 
-  .secao-etapa .status button {
+  .btn-status {
     font-size: 1.05rem;
   }
 }
