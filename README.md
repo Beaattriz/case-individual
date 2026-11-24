@@ -28,7 +28,8 @@ Abra **http://127.0.0.1:5000**.
 
 ```
 backend/
-  app.py             API Flask + regras de negócio + dados em memória
+  app.py             rotas Flask (@app.route): recebe a requisição e devolve JSON
+  backend.py         regras de negócio + dados em memória (sem Flask)
   requirements.txt   dependências (Flask)
   .env.example       configuração opcional
 frontend/
