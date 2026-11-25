@@ -7,29 +7,20 @@ Painel para acompanhar, em tempo real, a fila dos postos de saúde no circuito d
 
 ## Como rodar
 
-### Jeito rápido (Windows)
-
-Dê duplo clique em **`iniciar.bat`**. Ele cria um ambiente virtual (`.venv`), instala o Flask e liga o servidor.
-Depois abra **http://127.0.0.1:5000** no navegador.
-
-### Jeito manual (qualquer sistema)
+No terminal, dentro da pasta do projeto:
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux/macOS
-pip install -r backend/requirements.txt
-python backend/app.py
+pip install -r backend/requirements.txt   # instala o Flask (só na primeira vez)
+python backend/app.py                     # liga o servidor
 ```
 
-Abra **http://127.0.0.1:5000**.
+Depois abra **http://127.0.0.1:5000** no navegador. Para desligar o servidor: `Ctrl+C` no terminal.
 
 ## Estrutura
 
 ```
 backend/
-  app.py             rotas Flask (@app.route): recebe a requisição e devolve JSON
-  backend.py         regras de negócio + dados em memória (sem Flask)
+  app.py             backend inteiro: configuração, dados + regras de negócio e rotas Flask
   requirements.txt   dependências (Flask)
   .env.example       configuração opcional
 frontend/
@@ -38,7 +29,6 @@ frontend/
   coordenacao.html   tela da coordenação
   style.css          estilos das três telas
   script.js          chamadas à API e montagem das telas
-iniciar.bat          instala e liga tudo (Windows)
 ```
 
 ## API

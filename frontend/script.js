@@ -79,7 +79,7 @@ function textoDoErro(resp, padrao) {
 function mostrarAvisoConexao(semConexao) {
   const aviso = $('aviso-conexao');
   if (!aviso) return;
-  aviso.textContent = 'Sem conexão com o servidor. Confira se o Flask está rodando (iniciar.bat) e tente de novo.';
+  aviso.textContent = 'Sem conexão com o servidor. Confira se o Flask está rodando (python backend/app.py) e tente de novo.';
   aviso.hidden = !semConexao;
 }
 
