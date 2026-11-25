@@ -236,6 +236,8 @@ function iniciarVoluntario() {
         mostrarPosto(resp.dados);
         if (statusAntes !== 'lotado' && resp.dados.status === 'lotado') {
           avisarFila('A fila passou do limite: o posto foi marcado como LOTADO automaticamente.', 'aviso');
+        } else if (statusAntes === 'lotado' && resp.dados.status === 'aberto') {
+          avisarFila('A fila voltou para o limite: o posto foi REABERTO automaticamente.');
         } else {
           avisarFila(variacao > 0 ? '+1 registrado.' : '−1 registrado.');
         }

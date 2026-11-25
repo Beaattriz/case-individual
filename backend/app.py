@@ -9,7 +9,8 @@
 #   1. A fila nunca fica negativa
 #   2. Só os status aberto, lotado e fechado são aceitos
 #   3. Posto fechado nunca é recomendado (lotado também não)
-#   4. Fila acima de LIMITE_FILA -> posto vira "lotado" sozinho
+#   4. Fila acima de LIMITE_FILA -> posto vira "lotado" sozinho;
+#      quando a fila volta para o limite ou menos, ele reabre sozinho
 #   5. Não dá para reabrir posto com a fila acima do limite
 #   6. Posto fechado não recebe +1 na fila
 #   7. A recomendação pesa distância E fila: custo = distância + fila ÷ PESSOAS_POR_TRECHO
@@ -148,7 +149,10 @@ def reiniciar_dados():
     """
     global postos                  # "global": altera a variável postos lá de fora da função
     horario = agora()
-    postos = [{**p, "atualizado_em": horario} for p in deepcopy(POSTOS_INICIAIS)]
+    postos = [
+        {**p, "atualizado_em": horario, "lotado_automatico": False}
+        for p in deepcopy(POSTOS_INICIAIS)
+    ]
 
 
 def _buscar(id_posto):
@@ -202,9 +206,25 @@ def _distancia(posto, trecho):
 
 
 def _aplicar_limite(posto):
-    """Regra 4: posto aberto com fila acima do limite vira lotado sozinho."""
+    """
+    Regra 4, nos dois sentidos:
+      - IDA:   posto aberto com fila ACIMA do limite vira lotado sozinho;
+      - VOLTA: se foi o sistema que lotou, quando a fila volta para o limite
+               ou menos, o posto reabre sozinho.
+
+    O campo "lotado_automatico" guarda QUEM marcou o lotado:
+      True  -> foi o sistema (pela fila)  -> pode reabrir sozinho
+      False -> foi o voluntário no botão  -> só reabre se ele apertar ABERTO
+    Assim, se o voluntário lotou o posto por outro motivo (ex.: falta de equipe),
+    o sistema não reabre por conta própria.
+    """
     if posto["status"] == "aberto" and posto["fila"] > LIMITE_FILA:
         posto["status"] = "lotado"
+        posto["lotado_automatico"] = True
+
+    elif posto["status"] == "lotado" and posto["lotado_automatico"] and posto["fila"] <= LIMITE_FILA:
+        posto["status"] = "aberto"
+        posto["lotado_automatico"] = False
 
 
 # ============================================================
@@ -259,7 +279,7 @@ def alterar_fila(id_posto, variacao):
             raise ErroDeRegra("Não é permitido deixar a fila negativa: ela já está em zero.", 409)
 
         posto["fila"] += variacao
-        _aplicar_limite(posto)              # Regra 4: se passou do limite, vira lotado
+        _aplicar_limite(posto)              # Regra 4: lota acima do limite / reabre quando volta
         posto["atualizado_em"] = agora()    # guarda a hora para a coordenação saber se o dado é recente
         return dict(posto)                  # devolve uma cópia do posto
 
@@ -290,6 +310,7 @@ def alterar_status(id_posto, status):
             )
 
         posto["status"] = status
+        posto["lotado_automatico"] = False  # quem decidiu agora foi o voluntário, não o sistema
         posto["atualizado_em"] = agora()
         return dict(posto)
 
@@ -354,6 +375,7 @@ def cadastrar_posto(nome, trecho):
             "fila": 0,
             "status": "aberto",
             "atualizado_em": agora(),
+            "lotado_automatico": False,
         }
         postos.append(novo)
         return dict(novo)
