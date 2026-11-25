@@ -12,6 +12,7 @@
 #   4. Fila acima de LIMITE_FILA -> posto vira "lotado" sozinho
 #   5. Não dá para reabrir posto com a fila acima do limite
 #   6. Posto fechado não recebe +1 na fila
+#   7. A recomendação pesa distância E fila: custo = distância + fila ÷ PESSOAS_POR_TRECHO
 #
 # Privacidade: nenhum dado pessoal ou clínico é guardado.
 # Só contamos quantas pessoas estão na fila.
@@ -49,7 +50,7 @@ def inteiro_do_ambiente(nome, padrao):
     """
     Lê um número da configuração (variável de ambiente ou .env).
     Se não existir, vier com letra ou for zero/negativo, usa o valor padrão.
-    Ex.: inteiro_do_ambiente("LIMITE_FILA", 30) -> 30 se ninguém configurou.
+    Ex.: inteiro_do_ambiente("LIMITE_FILA", 20) -> 20 se ninguém configurou.
     """
     try:
         valor = int(os.environ.get(nome, padrao))
@@ -63,6 +64,11 @@ LIMITE_FILA = inteiro_do_ambiente("LIMITE_FILA", 20)
 
 # Quantos trechos tem o circuito (o trio só pode estar do trecho 1 até este número)
 TOTAL_TRECHOS = inteiro_do_ambiente("TOTAL_TRECHOS", 10)
+
+# Usado na recomendação (regra 7): andar 1 trecho "vale" o mesmo que esperar
+# esta quantidade de pessoas na fila. Com 5, um posto vazio a 1 trecho de distância
+# ganha de um posto no trecho do trio que já tem mais de 5 pessoas esperando.
+PESSOAS_POR_TRECHO = inteiro_do_ambiente("PESSOAS_POR_TRECHO", 5)
 
 # Porta onde o site vai rodar (padrão 5000 -> http://127.0.0.1:5000)
 PORTA = inteiro_do_ambiente("PORTA", 5000)
@@ -82,7 +88,7 @@ class ErroDeRegra(Exception):
     """
     Erro "nosso", usado quando alguma regra de negócio não permite a ação.
     Carrega a mensagem para o usuário e o código HTTP, por exemplo:
-        raise ErroDeRegra("A fila já está em zero.", 409)
+        raise ErroDeRegra("Não é permitido deixar a fila negativa: ela já está em zero.", 409)
 
     Códigos usados:
         400 = pedido mal feito (faltou informação)
@@ -250,7 +256,7 @@ def alterar_fila(id_posto, variacao):
 
         # Regra 1: a fila nunca fica negativa
         if posto["fila"] + variacao < 0:
-            raise ErroDeRegra("A fila já está em zero.", 409)
+            raise ErroDeRegra("Não é permitido deixar a fila negativa: ela já está em zero.", 409)
 
         posto["fila"] += variacao
         _aplicar_limite(posto)              # Regra 4: se passou do limite, vira lotado
@@ -292,8 +298,17 @@ def recomendar_posto(trecho):
     """
     Usada por: GET /api/recomendacao?trecho=<n>
 
-    Escolhe para onde a coordenação deve mandar o paciente:
-    o posto ABERTO mais perto do trio; empate -> fila menor; empate -> menor id.
+    Escolhe para onde a coordenação deve mandar o paciente.
+    Não basta ser o mais perto: um posto quase lotado no trecho do trio
+    é pior do que um posto vazio logo ao lado. Por isso calculamos um "custo":
+
+        custo = distância (em trechos) + fila ÷ PESSOAS_POR_TRECHO
+
+    e recomendamos o posto ABERTO de menor custo.
+    Exemplo com PESSOAS_POR_TRECHO = 5 e o trio no trecho 3:
+        posto no trecho 3 com 20 pessoas -> 0 + 20/5 = 4,0
+        posto no trecho 4 com  0 pessoas -> 1 +  0/5 = 1,0   <- recomendado
+    Empate de custo -> fila menor; depois -> menor id.
     """
     with trava:
         # Regra 3: só postos abertos entram na disputa (fechado e lotado ficam de fora)
@@ -301,8 +316,12 @@ def recomendar_posto(trecho):
         if not candidatos:
             raise ErroDeRegra("Nenhum posto disponível no momento.", 404)
 
-        # min() pega o candidato com a menor "nota" (distância, fila, id)
-        melhor = min(candidatos, key=lambda p: (_distancia(p, trecho), p["fila"], p["id"]))
+        def custo(p):
+            # Regra 7: junta "quanto o paciente anda" com "quanto ele espera"
+            return _distancia(p, trecho) + p["fila"] / PESSOAS_POR_TRECHO
+
+        # min() pega o candidato com a menor "nota" (custo, fila, id)
+        melhor = min(candidatos, key=lambda p: (custo(p), p["fila"], p["id"]))
         return {**melhor, "distancia": _distancia(melhor, trecho)}
 
 
@@ -375,7 +394,7 @@ def ler_json():
 def tratar_erro_de_regra(e):
     """
     Quando uma regra de negócio é quebrada, as funções da parte 2 levantam ErroDeRegra
-    (ex.: "A fila já está em zero.", código 409).
+    (ex.: "Não é permitido deixar a fila negativa", código 409).
     Esta função "pega" esse erro e transforma em resposta JSON para o navegador.
     Por isso as rotas abaixo não precisam de try/except.
     """
@@ -430,7 +449,8 @@ def get_postos():
 def get_recomendacao():
     """
     Devolve o posto recomendado para onde o trio está:
-    o mais perto que está ABERTO (fechado e lotado nunca são recomendados).
+    o posto ABERTO com o menor custo (distância + fila ÷ PESSOAS_POR_TRECHO).
+    Fechado e lotado nunca são recomendados.
 
     Exemplo: GET /api/recomendacao?trecho=4
     Se nenhum posto estiver aberto, devolve erro 404.

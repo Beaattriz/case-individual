@@ -22,7 +22,6 @@ Depois abra **http://127.0.0.1:5000** no navegador. Para desligar o servidor: `C
 backend/
   app.py             backend inteiro: configuração, dados + regras de negócio e rotas Flask
   requirements.txt   dependências (Flask)
-  .env.example       configuração opcional
 frontend/
   index.html         tela inicial
   voluntario.html    tela do voluntário no posto
@@ -48,11 +47,18 @@ Erros sempre voltam como `{"erro": "mensagem"}`.
 1. A fila nunca fica negativa (`409`).
 2. Só os status `aberto`, `lotado` e `fechado` são aceitos (`422`).
 3. Posto fechado nunca é recomendado (e lotado também não).
-4. Posto com fila acima do limite (`LIMITE_FILA`, padrão 30) passa automaticamente para `lotado`.
+4. Posto com fila acima do limite (`LIMITE_FILA`, padrão 20) passa automaticamente para `lotado`.
 5. Não dá para reabrir um posto com a fila acima do limite (`409`).
 6. Posto fechado não recebe +1 na fila (`409`).
 
-A recomendação é o posto **aberto** mais próximo do trio; no empate, o de fila menor.
+A recomendação considera **distância e fila** juntas. Para cada posto **aberto** calculamos:
+
+```
+custo = distância até o trio (em trechos) + fila ÷ PESSOAS_POR_TRECHO   (padrão 5)
+```
+
+e recomendamos o de menor custo (empate: fila menor). Assim, um posto quase lotado no trecho do trio
+(0 + 20÷5 = 4) perde para um posto vazio no trecho ao lado (1 + 0÷5 = 1).
 
 ## Cores na coordenação
 
@@ -65,7 +71,7 @@ A recomendação é o posto **aberto** mais próximo do trio; no empate, o de fi
 
 ## Configuração (opcional)
 
-Copie `backend/.env.example` para `backend/.env` e ajuste `LIMITE_FILA`, `TOTAL_TRECHOS` e `PORTA`.
+Crie um arquivo `backend/.env` (opcional) para mudar `LIMITE_FILA` (padrão 20), `PESSOAS_POR_TRECHO` (padrão 5), `TOTAL_TRECHOS` (padrão 10) e `PORTA` (padrão 5000). Ex.: `LIMITE_FILA=25`.
 
 ## Privacidade
 

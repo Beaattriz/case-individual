@@ -676,3 +676,21 @@ section.recomendado.sem-opcao {
     transition: none !important;
   }
 }
+
+/* ---------- 12. Aviso abaixo dos botões +1 / −1 ---------- */
+.botoes .aviso-fila {
+  grid-column: 1 / -1;    /* ocupa a largura dos dois botões */
+  margin-top: 0;
+  font-weight: 600;
+}
+
+/* "Tremidinha" quando a ação não é permitida (ex.: fila negativa) */
+.tremer {
+  animation: tremer 0.4s ease;
+}
+
+@keyframes tremer {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}

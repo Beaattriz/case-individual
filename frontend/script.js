@@ -146,6 +146,7 @@ function iniciarVoluntario() {
     fila: $('vol-fila'),
     atualizado: $('vol-atualizado'),
     mensagem: $('vol-mensagem'),
+    avisoFila: $('aviso-fila'),
     botoesFila: document.querySelectorAll('.btn-fila'),
     botoesStatus: document.querySelectorAll('.btn-status'),
   };
@@ -209,6 +210,17 @@ function iniciarVoluntario() {
     }
   });
 
+  /** Mostra o aviso logo abaixo dos botões +1/−1. Se for erro, o aviso "treme" para chamar atenção. */
+  function avisarFila(texto, tipo = 'ok') {
+    esconder(el.mensagem);
+    mostrarMensagem(el.avisoFila, texto, tipo);
+    el.avisoFila.classList.remove('tremer');
+    if (tipo === 'erro') {
+      void el.avisoFila.offsetWidth;   // reinicia a animação se o erro se repetir
+      el.avisoFila.classList.add('tremer');
+    }
+  }
+
   /* --- +1 / −1 --- */
   el.botoesFila.forEach((botao) => {
     botao.addEventListener('click', async () => {
@@ -223,15 +235,16 @@ function iniciarVoluntario() {
       if (resp.ok && resp.dados) {
         mostrarPosto(resp.dados);
         if (statusAntes !== 'lotado' && resp.dados.status === 'lotado') {
-          mostrarMensagem(el.mensagem, 'A fila passou do limite: o posto foi marcado como LOTADO automaticamente.', 'aviso');
+          avisarFila('A fila passou do limite: o posto foi marcado como LOTADO automaticamente.', 'aviso');
         } else {
-          mostrarMensagem(el.mensagem, variacao > 0 ? '+1 registrado.' : '−1 registrado.');
+          avisarFila(variacao > 0 ? '+1 registrado.' : '−1 registrado.');
         }
       } else if (resp.semConexao) {
         // Nunca guardamos o clique para reenviar depois: poderia contar a mesma pessoa duas vezes
-        mostrarMensagem(el.mensagem, 'Sem conexão: o clique NÃO foi registrado. Tente de novo.', 'erro');
+        avisarFila('Sem conexão: o clique NÃO foi registrado. Tente de novo.', 'erro');
       } else {
-        mostrarMensagem(el.mensagem, textoDoErro(resp, 'Não foi possível alterar a fila.'), resp.status === 409 ? 'aviso' : 'erro');
+        // Ex.: fila em zero e alguém aperta −1 -> o backend recusa (409) e explica o motivo
+        avisarFila(textoDoErro(resp, 'Não foi possível alterar a fila.'), 'erro');
       }
     });
   });
@@ -242,6 +255,7 @@ function iniciarVoluntario() {
       if (!postoAtual) return;
       const status = botao.dataset.status;
 
+      esconder(el.avisoFila);
       travar(el.botoesStatus, true);
       const resp = await chamarApi(`/api/postos/${postoAtual.id}/status`, 'PATCH', { status });
       travar(el.botoesStatus, false);
